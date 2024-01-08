@@ -73,7 +73,7 @@ use [WideWorldImporters];
 		,cus.CustomerName as [Название клиента]
 		, inv.InvoiceDate as [Дата продажи]
 		, sum(il.ExtendedPrice) over (partition by il.InvoiceID) as [Сумма продажи]	
-		, sum(il.ExtendedPrice) over (partition by format(inv.InvoiceDate, 'yyyyMM') order by format(inv.InvoiceDate, 'yyyyMM')) as [Сумма нарастающим итогом]
+		, sum(il.ExtendedPrice) over (order by format(inv.InvoiceDate, 'yyyyMM')) as [Сумма нарастающим итогом]
 	from Sales.Invoices inv
 	join [Sales].[Customers] cus on cus.CustomerID=inv.CustomerID
 	join [Sales].[InvoiceLines] il  on il.InvoiceID = inv.InvoiceID
@@ -176,7 +176,7 @@ select sel.[id клиента]
 		, sel.[Название клиента]
 		, sel.[id товара]
 		, sel.[Цена]
-		, sel.[Дата покупки] from 
+		, max(sel.[Дата покупки]) as [Дата покупки] from 
 (
 SELECT inv.[InvoiceID]
       ,inv.[CustomerID] as [id клиента]
@@ -184,13 +184,17 @@ SELECT inv.[InvoiceID]
 	  , il.StockItemID as [id товара]
 	  ,il.UnitPrice as [Цена]
       ,inv.[InvoiceDate]  as [Дата покупки]
-	  ,row_number() over (partition by inv.[CustomerID] order by il.UnitPrice desc, inv.[InvoiceDate] desc) as [Номер клиента]	
+	  ,dense_rank() over (partition by inv.[CustomerID] order by il.UnitPrice desc, il.StockItemID desc) as [Номер клиента]	
 	  ,il.InvoiceLineID
   FROM [Sales].[Invoices] inv
 	join [Sales].[Customers] cus on cus.CustomerID = inv.CustomerID
 	join [Sales].[InvoiceLines] il  on il.InvoiceID = inv.InvoiceID
 ) sel
 where sel.[Номер клиента] in (1,2)
-order by sel.[id клиента], sel.[Цена] desc ,sel.[Дата покупки] desc
+group by sel.[id клиента]
+		, sel.[Название клиента]
+		, sel.[id товара]
+		, sel.[Цена]
+order by sel.[id клиента], sel.[Цена] desc ,[Дата покупки] desc
 
-Опционально можете для каждого запроса без оконных функций сделать вариант запросов с оконными функциями и сравнить их производительность. 
+--Опционально можете для каждого запроса без оконных функций сделать вариант запросов с оконными функциями и сравнить их производительность. 
