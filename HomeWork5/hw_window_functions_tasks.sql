@@ -89,21 +89,31 @@ use [WideWorldImporters];
 */
 
 use [WideWorldImporters];
-select * from 
+select sel2.* from
+(
+select 
+    sel.[Год месяц продажи]
+  , sel.[id продукта]
+  , sel.[Название продукта]
+  , sel.[Количество]
+  , row_number() over (partition by sel.[Год месяц продажи] order by sel.[Количество] desc) as [Место по популярности]
+from 
 (
 	select
-		inv.InvoiceDate as [Дата продажи] 
-		, il.InvoiceID
-		, il.InvoiceLineID
-		, il.Description 
-		, il.Quantity as [Количество]
-		, row_number() over (partition by format(inv.InvoiceDate, 'yyyyMM') order by il.Quantity desc) as [Место по популярности]
+		format(inv.InvoiceDate, 'yyyyMM') as [Год месяц продажи] 
+		 ,il.StockItemID as [id продукта]
+		, il.Description as [Название продукта]
+		, sum(il.Quantity) as [Количество]
 	from Sales.[InvoiceLines] il
 	join [Sales].Invoices inv  on il.InvoiceID = inv.InvoiceID
 	where inv.InvoiceDate >= '20160101'	and inv.InvoiceDate <= '20161231'
+	group by format(inv.InvoiceDate, 'yyyyMM') 
+		 ,il.StockItemID
+		, il.Description	
 ) sel
-where sel.[Место по популярности] in (1,2)
-order by sel.[Количество] desc, sel.[Дата продажи]
+) sel2
+where sel2.[Место по популярности] in (1,2)
+order by sel2.[Год месяц продажи], sel2.[Количество] desc
 
 /*
 4. Функции одним запросом
