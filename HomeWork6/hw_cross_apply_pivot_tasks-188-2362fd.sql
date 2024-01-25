@@ -106,13 +106,22 @@ unpivot (Code for CountryName1 in ([IsoAlpha3Code],[IsoNumericCode])) as unpv;
 В результатах должно быть ид клиета, его название, ид товара, цена, дата покупки.
 */
 
-Select cust.CustomerName, cust.CustomerID, oa.* from
+use [WideWorldImporters];
+
+Select  cust.CustomerID [Id клиента]
+	  , cust.CustomerName [Название клиента]
+	  , ca.StockItemID [id товара]
+	  , ca.[Цена] 
+	  --, ca.InvoiceDate 
+	  from
 [Sales].[Customers] cust
-outer apply
-	(SELECT Top 2 il.*
-	  ,isNull(il.UnitPrice, 0) as [Цена]
+
+cross apply
+	(SELECT distinct Top 2 il.StockItemID
+	  ,il.UnitPrice as [Цена]
+	  --,inv.InvoiceDate	 
 		FROM [Sales].[Invoices] inv
 		join [Sales].[InvoiceLines] il  on il.InvoiceID = inv.InvoiceID 
-		where cust.CustomerID = inv.CustomerID
-	order by [Цена] desc) as oa
+		where inv.CustomerID = cust.CustomerID
+	order by [Цена]  desc) as ca
 order by cust.CustomerName, [Цена] desc
