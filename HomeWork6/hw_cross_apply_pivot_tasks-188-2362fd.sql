@@ -112,16 +112,18 @@ Select  cust.CustomerID [Id клиента]
 	  , cust.CustomerName [Название клиента]
 	  , ca.StockItemID [id товара]
 	  , ca.[Цена] 
-	  --, ca.InvoiceDate 
+	  , ca.InvoiceDate 
 	  from
 [Sales].[Customers] cust
-
 cross apply
 	(SELECT distinct Top 2 il.StockItemID
 	  ,il.UnitPrice as [Цена]
-	  --,inv.InvoiceDate	 
+	  ,inv.CustomerID
+	  ,max(inv.InvoiceDate) InvoiceDate
 		FROM [Sales].[Invoices] inv
 		join [Sales].[InvoiceLines] il  on il.InvoiceID = inv.InvoiceID 
 		where inv.CustomerID = cust.CustomerID
+	group by il.StockItemID
+	  ,il.UnitPrice, inv.CustomerID
 	order by [Цена]  desc) as ca
-order by cust.CustomerName, [Цена] desc
+order by [Id клиента], [Цена] desc
