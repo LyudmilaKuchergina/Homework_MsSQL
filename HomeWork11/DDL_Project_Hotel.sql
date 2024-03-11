@@ -8,27 +8,6 @@ GO
 use Hotel;
 GO
 
-------- первые 3 таблицы нужны для FK
-CREATE TABLE Employees(
-	Employee_id int not null identity(1, 1)  primary key,
-	fio	varchar(100)  not null,
-	job_title varchar(50) 
-);
-
-CREATE TABLE Services(
-	Service_id int not null identity(1, 1)  primary key,
-	name_of_service	varchar(100)  not null ,
-	is_extra_service bit 
-);
-
-CREATE TABLE Guests(
-	Guests_id int not null identity(1, 1)  primary key,
-	fio	varchar(100)  not null,
-	email varchar(100),
-	phone varchar(50)
-);
---------
-
 
 CREATE TABLE Rooms(
 	Room_id int not null,
