@@ -1,14 +1,14 @@
---1. РЎРѕР·РґР°С‚СЊ Р±Р°Р·Сѓ РґР°РЅРЅС‹С….
+--1. Создать базу данных.
 
 CREATE DATABASE Hotel;
 GO
 
---2. 3-4 РѕСЃРЅРѕРІРЅС‹Рµ С‚Р°Р±Р»РёС†С‹ РґР»СЏ СЃРІРѕРµРіРѕ РїСЂРѕРµРєС‚Р°.
+--2. 3-4 основные таблицы для своего проекта.
 
 use Hotel;
 GO
 
-------- РїРµСЂРІС‹Рµ 3 С‚Р°Р±Р»РёС†С‹ РЅСѓР¶РЅС‹ РґР»СЏ FK
+------- первые 3 таблицы нужны для FK
 CREATE TABLE Employees(
 	Employee_id int not null identity(1, 1)  primary key,
 	fio	varchar(100)  not null,
@@ -28,13 +28,13 @@ CREATE TABLE Guests(
 	phone varchar(50)
 );
 --------
-
-
+drop table Rooms;
 CREATE TABLE Rooms(
-	Room_id int not null,
+	Room_id int not null identity(1, 1)  primary key,
 	number	varchar(100)  not null,
 	category varchar(20)  not null,
-	Employee_id int not null
+	Employee_id int not null,
+	Service_id int not null
 );
 
 CREATE TABLE Tariffs(
@@ -51,8 +51,7 @@ CREATE TABLE Bookings(
 	begin_date date,
 	end_date date,
 	Guests_id int not null,
-	Room_id int not null,
-	Service_id int not null
+	Room_id int not null
 );
 
 CREATE TABLE b_Bookings_Services(
@@ -61,8 +60,7 @@ CREATE TABLE b_Bookings_Services(
 	Service_id int not null
 );
 
---3. РџРµСЂРІРёС‡РЅС‹Рµ Рё РІРЅРµС€РЅРёРµ РєР»СЋС‡Рё РґР»СЏ РІСЃРµС… СЃРѕР·РґР°РЅРЅС‹С… С‚Р°Р±Р»РёС†.
-
+--3. Первичные и внешние ключи для всех созданных таблиц.
 ALTER TABLE Tariffs  ADD  PRIMARY KEY (Tariff_id);
 ALTER TABLE Tariffs  ADD  CONSTRAINT FK_Service_Tariff FOREIGN KEY(Service_id)
 REFERENCES Services (Service_id);
@@ -74,28 +72,32 @@ REFERENCES Employees (Employee_id);
 ALTER TABLE Bookings  ADD  PRIMARY KEY (Booking_id);
 ALTER TABLE Bookings  ADD  CONSTRAINT FK_Guests_Booking FOREIGN KEY(Guests_id)
 REFERENCES Guests (Guests_id);
+
+--ALTER TABLE Bookings  drop  CONSTRAINT FK_Room_Booking;
 ALTER TABLE Bookings  ADD  CONSTRAINT FK_Room_Booking FOREIGN KEY(Room_id)
 REFERENCES Rooms (Room_id);
 ALTER TABLE Bookings  ADD  CONSTRAINT FK_Service_Booking FOREIGN KEY(Service_id)
 REFERENCES Services (Service_id);
 
 ALTER TABLE b_Bookings_Services  ADD  PRIMARY KEY (Bookings_Services_id);
+
+--ALTER TABLE b_Bookings_Services  drop CONSTRAINT FK_Booking_Book_Serv
 ALTER TABLE b_Bookings_Services  ADD  CONSTRAINT FK_Booking_Book_Serv FOREIGN KEY(Booking_id)
 REFERENCES Bookings (Booking_id);
 ALTER TABLE b_Bookings_Services  ADD  CONSTRAINT FK_Service_Book_Serv FOREIGN KEY(Service_id)
 REFERENCES Services (Service_id);
 
---4. 1-2 РёРЅРґРµРєСЃР° РЅР° С‚Р°Р±Р»РёС†С‹.
+--4. 1-2 индекса на таблицы.
 
 CREATE INDEX idx_begin_date on Bookings (begin_date);
 
 ALTER TABLE Rooms ADD CONSTRAINT UK_room_number UNIQUE (number);
 
---5. РќР°Р»РѕР¶РёС‚Рµ РїРѕ РѕРґРЅРѕРјСѓ РѕРіСЂР°РЅРёС‡РµРЅРёСЋ РІ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†Рµ РЅР° РІРІРѕРґ РґР°РЅРЅС‹С….
+--5. Наложите по одному ограничению в каждой таблице на ввод данных.
 
 ALTER TABLE Tariffs ADD  CONSTRAINT def_begin_date DEFAULT (getdate()) FOR begin_date;
 
-ALTER TABLE Rooms ADD  CONSTRAINT def_category DEFAULT (N'РџРµСЂРІР°СЏ РєР°С‚РµРіРѕСЂРёСЏ') FOR category;
+ALTER TABLE Rooms ADD  CONSTRAINT def_category DEFAULT (N'Первая категория') FOR category;
 
 ALTER TABLE Bookings ADD CONSTRAINT constr_beg 
 		CHECK (create_date <= begin_date);
