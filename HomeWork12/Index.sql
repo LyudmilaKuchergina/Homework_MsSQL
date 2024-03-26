@@ -5,7 +5,10 @@ use Hotel;
 
 --Составить список забронированных номеров.
 
-CREATE CLUSTERED INDEX idx_date on Bookings (begin_date, end_date);
+Drop index if exists idx_begin_date;
+
+CREATE NONCLUSTERED INDEX idx_date on Bookings (begin_date, end_date);
+CREATE NONCLUSTERED INDEX idx_Room_id on Bookings (Room_id);
 
 SELECT b.[Booking_id]
       ,b.[begin_date]
@@ -21,7 +24,11 @@ SELECT b.[Booking_id]
 
  --Составить список номеров и их гостей, которые обслуживаются одним сотрудником
 
-  CREATE NONCLUSTERED INDEX idx_guest on Bookings (Guests_id) INCLUDE (Room_id);
+  CREATE NONCLUSTERED INDEX idx_guest on Bookings (Guests_id);
+  CREATE NONCLUSTERED INDEX idx_fio on Employees (fio);
+  CREATE NONCLUSTERED INDEX idx_room_Employee_id on Rooms (Employee_id);
+  CREATE NONCLUSTERED INDEX idx_room_number on Rooms (number);
+  CREATE NONCLUSTERED INDEX idx_Guests_id on Bookings (Guests_id);
 
  SELECT e.[Employee_id]
       ,e.[fio]
