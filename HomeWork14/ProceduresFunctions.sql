@@ -56,13 +56,10 @@ Sales.Invoices
 Sales.InvoiceLines
 */
 
-CREATE FUNCTION [Sales].[SumBySelectedCustomer](@CustomerID int)
-RETURNS decimal(18,2)
+CREATE OR ALTER PROCEDURE [Sales].[p_SumBySelectedCustomer](@CustomerID int)
+
 AS
 BEGIN
-	Declare @Result decimal(18,2);
-	select @Result = 
-	(
 	select [Сумма покупки] from(
 	select 
 		cus.CustomerName as [Название клиента]
@@ -74,12 +71,13 @@ BEGIN
 	where inv.CustomerID = @CustomerID
 	group by cus.CustomerName, inv.CustomerID
 	) sel
-	)
 
-	Return @Result;
 END;
 
-select [Sales].[SumBySelectedCustomer](834) as 'SumBySelectedCustomer'
+DECLARE	@return_value int
+
+EXEC	@return_value = [Sales].[p_SumBySelectedCustomer]
+		@CustomerID = 834
 
 /*
 3) Создать одинаковую функцию и хранимую процедуру, посмотреть в чем разница в производительности и почему.
@@ -88,7 +86,7 @@ select [Sales].[SumBySelectedCustomer](834) as 'SumBySelectedCustomer'
 --Вывести список самого популярного продукта (по количеству проданных) 
 --в каждом месяце за 2015 год (по 1 популярному продукту в каждом месяце).
 
-CREATE FUNCTION [Sales].[f_PopularProduct]()
+CREATE  OR ALTER FUNCTION [Sales].[f_PopularProduct]()
 RETURNS table
 AS
 RETURN
@@ -153,10 +151,22 @@ END;
 
 set statistics time, io on
 
+dbcc freeproccache;
+
 SELECT * from [Sales].[f_PopularProduct]()
-order by [Год месяц продажи], [Количество] desc;
+--order by [Год месяц продажи], [Количество] desc;
+print 11111111;
 
 EXEC [Sales].[p_PopularProduct];
+
+/* После выполнения функции и ХП в информации о времени выполнения запроса:
+функция: Время ЦП = 998 мс, затраченное время = 338 мс.
+ХП: Время ЦП = 1063 мс, затраченное время = 392 мс.
+
+Функции ориентированы на вычисления, отличаются простотой использования. 
+Хранимые процедуры становятся в приоритет, когда задачи становятся сложнее, например, когда требуется использовать временное хранение 
+данных или провести многоплановую обработку. */
+
 
 
 /*
